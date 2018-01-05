@@ -10,7 +10,7 @@ Skript to turn ubuntu server into a docker host for linuxmuster.
 ```
 mkdir /opt/linuxmuster/
 cd /opt/linuxmuster/
-git clone ...`
+git clone https://github.com/linuxmuster/linuxmuster-dockerhost.git`
 ln -s /opt/linuxmuster/linuxmuster-dockerhost/linuxmuster-dockerhost  /usr/sbin/linuxmuster-dockerhost
 
 mkdir -p /etc/linuxmuster/ 
