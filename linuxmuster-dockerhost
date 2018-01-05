@@ -1,0 +1,109 @@
+#!/bin/bash
+
+. /etc/linuxmuster/linuxmuster-dockerhost.conf || exit 1
+
+while getopts 'a:h' OPT; do
+  case $OPT in
+    a)  action=$OPTARG;;
+    h)  hlp="yes";;
+    *)  unknown="yes";;
+  esac
+done
+
+# usage
+HELP="
+    usage: $0 -a <action> [ -h ]
+    
+    action:
+        turnkey:
+            Prepare the Dockerhost for usage.
+        update:
+            Update docker related base software.
+
+"
+
+if [ "$hlp" = "yes" -o $# -lt 1 ]; then
+  echo "$HELP"
+  exit 0
+fi
+
+function dockerHostTurnkey {
+	echo "Initial setup for a linuxmuster docker host."
+	echo 
+	echo -n "Hostname: "
+	read targethostname
+	hostname $targethostname
+	sed -i "/127.0.0.1/d" /etc/hosts
+	sed -i "1i127.0.0.1   localhost $targethostname" /etc/hosts
+	echo $targethostname > /etc/hostname
+
+	echo "Checking for network interface... "
+	DWNIFACE=$(ip link show | grep DOWN | grep -v docker | awk '{print $2}' | sed -e "s/://")
+
+	if [ "x$DWNIFACE" != "x" ]; then 
+		sed -i "s/eth0/$DWNIFACE/g" /etc/network/interfaces
+		ifup $DWNIFACE
+	fi
+
+	echo -n "Generating new SSH host keys..."
+	rm /etc/ssh/ssh_host_*_key
+	dpkg-reconfigure openssh-server > /dev/null 2>&1
+	echo " done."
+
+	echo 'Changing passord for administrative user "dockeradmin".'
+	echo 'Defaults to "mustermuster" - please change.'
+	passwd dockeradmin
+
+	echo -n "Removing old docker pakages, just to be shure..."
+	sudo apt-get -qq remove docker docker-engine docker.io > /dev/null 2>&1
+	echo " done."
+
+	apt-get -qq update
+	apt-get -qq install \
+		apt-transport-https \
+		ca-certificates \
+		curl \
+		software-properties-common > /dev/null 2>&1
+
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - > /dev/null 2>&1
+
+	sudo add-apt-repository \
+	   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+	   $(lsb_release -cs) \
+	   stable" > /dev/null 2>&1
+	dockerHostUpdate
+}
+
+
+function dockerHostUpdate {
+	# Update Docker CE
+	echo -n "Making shure, the newest docker-ce packages are installed..."
+	sudo apt-get update > /dev/null 2>&1
+	sudo apt-get -y install docker-ce 
+	echo " done."
+
+	# Install docker-compose, version taken from config file
+	echo -n "Installing docker-compose version $COMPOSEVERSION ... "
+	apt-get -qq remove docker-compose
+	sudo sudo curl -L \
+		https://github.com/docker/compose/releases/download/${COMPOSEVERSION}/docker-compose-`uname -s`-`uname -m` \
+		-o /usr/local/bin/docker-compose > /dev/null 2>&1
+	chown root: /usr/local/bin/docker-compose
+	chmod 755 /usr/local/bin/docker-compose
+	/usr/local/bin/docker-compose --version
+	echo " done."
+}
+
+case $action in
+"turnkey")
+    dockerHostTurnkey
+;;
+"update")
+    dockerHostUpdate
+;;
+*)
+    echo "$HELP"
+    exit 1
+;;
+esac
+
