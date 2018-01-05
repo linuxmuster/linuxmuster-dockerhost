@@ -54,7 +54,7 @@ function dockerHostTurnkey {
 	echo 'Defaults to "mustermuster" - please change.'
 	passwd dockeradmin
 
-	echo -n "Removing old docker pakages, just to be shure..."
+	echo -n "Removing old docker packages, just to be sure..."
 	sudo apt-get -qq remove docker docker-engine docker.io > /dev/null 2>&1
 	echo " done."
 
@@ -85,7 +85,7 @@ function dockerHostTurnkey {
 
 function dockerHostUpdate {
 	# Update Docker CE
-	echo -n "Making shure, the newest docker-ce packages are installed..."
+	echo -n "Making sure, the newest docker-ce packages are installed..."
 	sudo apt-get update > /dev/null 2>&1
 	sudo apt-get -y install docker-ce 
 	echo " done."
