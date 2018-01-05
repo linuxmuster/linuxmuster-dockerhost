@@ -78,13 +78,10 @@ function dockerHostTurnkey {
 	useradd -G docker dockeruser
         mkdir -p /home/dockeruser
 	chown -R dockeruser: /home/dockeruser
+	cp -r /etc/skel/.* /home/dockeruser/
 	echo "done."
 	echo "Please provide a password for \"dockeruser\":"
 	passwd dockeruser
-	
-	
-	
-	
 }
 
 
