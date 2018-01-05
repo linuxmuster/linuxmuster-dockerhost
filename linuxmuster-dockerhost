@@ -50,7 +50,7 @@ function dockerHostTurnkey {
 	dpkg-reconfigure openssh-server > /dev/null 2>&1
 	echo " done."
 
-	echo 'Changing passord for administrative user "dockeradmin".'
+	echo 'Changing password for administrative user "dockeradmin".'
 	echo 'Defaults to "mustermuster" - please change.'
 	passwd dockeradmin
 
@@ -72,6 +72,19 @@ function dockerHostTurnkey {
 	   $(lsb_release -cs) \
 	   stable" > /dev/null 2>&1
 	dockerHostUpdate
+	echo -n "Adding non privileged user to run containers..."
+	
+	echo -n "Adding non privileged user to run containers..."
+	useradd -G docker dockeruser
+        mkdir -p /home/dockeruser
+	chown -R dockeruser: /home/dockeruser
+	echo "done."
+	echo "Please provide a password for \"dockeruser\":"
+	passwd dockeruser
+	
+	
+	
+	
 }
 
 
