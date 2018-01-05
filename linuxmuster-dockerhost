@@ -75,10 +75,10 @@ function dockerHostTurnkey {
 	echo -n "Adding non privileged user to run containers..."
 	
 	echo -n "Adding non privileged user to run containers..."
-	useradd -G docker dockeruser
+	useradd -G docker dockeruser > /dev/null 2>&1
         mkdir -p /home/dockeruser
+	cp /etc/skel/.* /home/dockeruser/
 	chown -R dockeruser: /home/dockeruser
-	cp -r /etc/skel/.* /home/dockeruser/
 	echo "done."
 	echo "Please provide a password for \"dockeruser\":"
 	passwd dockeruser
